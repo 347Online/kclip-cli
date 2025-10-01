@@ -36,19 +36,10 @@
           "rustc"
           "rustfmt"
         ];
-        rustPlatform = pkgs.makeRustPlatform {
-          cargo = rust-toolchain;
-          rustc = rust-toolchain;
-        };
-        kclip =
+        mkPkg =
           let
             manifest = (lib.importTOML ./Cargo.toml).package;
-          in
-          (pkgs.naersk.override {
-            cargo = rust-toolchain;
-            rustc = rust-toolchain;
-          }).buildPackage
-            {
+            default-args = {
               pname = manifest.name;
               version = manifest.version;
 
@@ -61,17 +52,28 @@
 
               meta.mainProgram = manifest.default-run;
             };
+          in
+          args:
+          (pkgs.naersk.override {
+            cargo = rust-toolchain;
+            rustc = rust-toolchain;
+          }).buildPackage
+            (default-args // args);
+
+        kclip-dev = mkPkg {
+          release = false;
+        };
       in
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             rust-toolchain
             rust-analyzer-nightly
-            kclip
+            kclip-dev
           ];
         };
-        packages = {
-          inherit kclip;
+        packages = rec {
+          kclip = mkPkg { };
           default = kclip;
         };
       }
