@@ -1,3 +1,4 @@
+use arboard::Clipboard;
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -39,7 +40,9 @@ fn main() {
             action: Actions::Paste,
         }
         | Commands::Kcpaste => {
-            println!("copy");
+            if let Ok(text) = Clipboard::new().and_then(|mut cb| cb.get_text()) {
+                print!("{text}")
+            }
         }
     };
 }
