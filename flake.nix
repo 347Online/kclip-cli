@@ -29,40 +29,31 @@
             inputs.naersk.overlays.default
           ];
         };
-        lib = pkgs.lib;
         rust-toolchain = pkgs.fenix.complete.withComponents [
           "cargo"
           "clippy"
           "rustc"
           "rustfmt"
         ];
-        mkPkg =
-          let
-            manifest = (lib.importTOML ./Cargo.toml).package;
-            default-args = {
-              pname = manifest.name;
-              version = manifest.version;
 
-              src = lib.cleanSource ./.;
-
-              postInstall = ''
-                ln -fs $out/bin/kclip $out/bin/kccopy
-                ln -fs $out/bin/kclip $out/bin/kcpaste
-              '';
-
-              meta.mainProgram = manifest.default-run;
-            };
-          in
-          args:
+        kclip-release = pkgs.callPackage ./package.nix {
+          rustPlatform = pkgs.rustPlatform;
+          lib = pkgs.lib;
+        };
+        kclip-dev =
           (pkgs.naersk.override {
             cargo = rust-toolchain;
             rustc = rust-toolchain;
           }).buildPackage
-            (default-args // args);
-
-        kclip-dev = mkPkg {
-          release = false;
-        };
+            {
+              inherit (kclip-release)
+                pname
+                version
+                src
+                postInstall
+                meta
+                ;
+            };
       in
       {
         devShell = pkgs.mkShell {
@@ -73,8 +64,8 @@
           ];
         };
         packages = rec {
-          kclip = mkPkg { };
-          default = kclip;
+          kclip-cli = kclip-release;
+          default = kclip-cli;
         };
         overlays.default = import ./overlay.nix;
       }
