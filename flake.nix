@@ -67,7 +67,7 @@
           kclip-cli = kclip-release;
           default = kclip-cli;
         };
-        overlays.default = import ./overlay.nix;
+        overlays.default = ./overlay.nix;
       }
     );
 }

@@ -1,10 +1,6 @@
-self: super:
-let
-  kclip-cli = self.callPackage ./package.nix {
-    rustPlatform = super.rustPlatform;
-    lib = super.lib;
+final: prev: {
+  kclip-cli = final.callPackage ./package.nix {
+    rustPlatform = prev.rustPlatform;
+    lib = prev.lib;
   };
-in
-{
-  inherit kclip-cli;
 }
