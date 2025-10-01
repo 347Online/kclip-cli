@@ -6,6 +6,11 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    naersk = {
+      url = "github:nix-community/naersk";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.fenix.follows = "fenix";
+    };
   };
 
   outputs =
@@ -19,8 +24,12 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ inputs.fenix.overlays.default ];
+          overlays = [
+            inputs.fenix.overlays.default
+            inputs.naersk.overlays.default
+          ];
         };
+        lib = pkgs.lib;
         rust-toolchain = pkgs.fenix.complete.withComponents [
           "cargo"
           "clippy"
@@ -31,11 +40,22 @@
           cargo = rust-toolchain;
           rustc = rust-toolchain;
         };
-        kclip = pkgs.callPackage ./package.nix ({
-          inherit rustPlatform;
+        kclip =
+          let
+            manifest = (lib.importTOML ./Cargo.toml).package;
+          in
+          (pkgs.naersk.override {
+            cargo = rust-toolchain;
+            rustc = rust-toolchain;
+          }).buildPackage
+            {
+              pname = manifest.name;
+              version = manifest.version;
 
-          lib = pkgs.lib;
-        });
+              src = lib.cleanSource ./.;
+
+              meta.mainProgram = manifest.default-run;
+            };
       in
       {
         devShell = pkgs.mkShell {
