@@ -68,7 +68,7 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             rust-toolchain
-            rust-analyzer-nightly
+            rust-analyzer
             kclip-dev
           ];
         };
