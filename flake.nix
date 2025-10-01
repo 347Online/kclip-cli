@@ -76,6 +76,7 @@
           kclip = mkPkg { };
           default = kclip;
         };
+        overlays.default = import ./overlay.nix;
       }
     );
 }
