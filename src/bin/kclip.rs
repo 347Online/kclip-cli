@@ -1,3 +1,6 @@
+use std::fmt::Write;
+use std::io::stdin;
+
 use arboard::Clipboard;
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -26,23 +29,27 @@ struct Cli {
     command: Commands,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     match &cli.command {
         Commands::Kclip {
             action: Actions::Copy,
         }
         | Commands::Kccopy => {
-            println!("copy");
+            let text: String = stdin().lines().map_while(Result::ok).collect();
+
+            Clipboard::new().and_then(|mut cb| cb.set_text(text))?;
         }
 
         Commands::Kclip {
             action: Actions::Paste,
         }
         | Commands::Kcpaste => {
-            if let Ok(text) = Clipboard::new().and_then(|mut cb| cb.get_text()) {
-                print!("{text}")
-            }
+            let text = Clipboard::new().and_then(|mut cb| cb.get_text())?;
+
+            print!("{text}");
         }
-    };
+    }
+
+    Ok(())
 }
