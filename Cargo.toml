@@ -1,0 +1,9 @@
+[package]
+name = "kclip-cli"
+version = "0.1.0"
+edition = "2024"
+default-run = "kclip"
+
+[dependencies]
+arboard = "3.6.1"
+clap = { version = "4.5.48", features = ["cargo", "derive"] }
