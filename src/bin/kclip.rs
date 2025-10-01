@@ -1,26 +1,23 @@
 use clap::{Parser, Subcommand, ValueEnum};
 
-#[derive(Clone, ValueEnum)]
+#[derive(Debug, Clone, ValueEnum)]
 enum Actions {
     Copy,
     Paste,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 enum Commands {
-    #[command(name = "kclip", arg_required_else_help = true)]
-    Kclip {
-        #[arg()]
-        action: Actions,
-    },
+    #[command(arg_required_else_help = true)]
+    Kclip { action: Actions },
 
-    #[command(name = "kccopy")]
+    #[command()]
     Kccopy,
     #[command()]
     Kcpaste,
 }
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[clap(multicall(true), propagate_version(true))]
 #[command(name = "kclip", version, about, long_about = None)]
 struct Cli {
@@ -30,4 +27,19 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+    match &cli.command {
+        Commands::Kclip {
+            action: Actions::Copy,
+        }
+        | Commands::Kccopy => {
+            println!("copy");
+        }
+
+        Commands::Kclip {
+            action: Actions::Paste,
+        }
+        | Commands::Kcpaste => {
+            println!("copy");
+        }
+    };
 }
