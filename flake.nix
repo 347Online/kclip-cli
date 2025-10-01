@@ -54,6 +54,11 @@
 
               src = lib.cleanSource ./.;
 
+              postInstall = ''
+                ln -fs $out/bin/kclip $out/bin/kccopy
+                ln -fs $out/bin/kclip $out/bin/kcpaste
+              '';
+
               meta.mainProgram = manifest.default-run;
             };
       in
