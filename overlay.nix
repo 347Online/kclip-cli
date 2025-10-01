@@ -1,6 +1,6 @@
 self: super:
 let
-  kclip-cli = self.callPackage ./. { };
+  kclip-cli = super.callPackage ./. { };
 in
 {
   inherit kclip-cli;
