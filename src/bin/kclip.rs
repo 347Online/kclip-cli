@@ -1,4 +1,3 @@
-use std::fmt::Write;
 use std::io::stdin;
 
 use arboard::Clipboard;
