@@ -1,5 +1,8 @@
 use std::io::stdin;
 
+extern crate arboard;
+extern crate clap;
+
 use arboard::Clipboard;
 use clap::{Parser, Subcommand, ValueEnum};
 
