@@ -1,4 +1,4 @@
-use std::io::stdin;
+use std::io::{BufRead, Write, stdin, stdout};
 
 use arboard::Clipboard;
 use clap::{Parser, Subcommand, ValueEnum};
@@ -30,23 +30,26 @@ struct Cli {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
+
+    let mut clipboard = Clipboard::new()?;
+
     match &cli.command {
         Commands::Kclip {
             action: Actions::Copy,
         }
         | Commands::Kccopy => {
-            let text: String = stdin().lines().map_while(Result::ok).collect();
+            let text = stdin().lock().lines().collect::<Result<String, _>>()?;
 
-            Clipboard::new().and_then(|mut cb| cb.set_text(text))?;
+            clipboard.set_text(text)?;
         }
 
         Commands::Kclip {
             action: Actions::Paste,
         }
         | Commands::Kcpaste => {
-            let text = Clipboard::new().and_then(|mut cb| cb.get_text())?;
+            let text = clipboard.get_text()?;
 
-            print!("{text}");
+            write!(stdout().lock(), "{text}")?;
         }
     }
 
