@@ -1,5 +1,6 @@
 use std::io::{BufRead, Write, stdin, stdout};
 
+use anyhow::Context;
 use arboard::Clipboard;
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -28,29 +29,44 @@ struct Cli {
     command: Commands,
 }
 
+fn copy(cb: &mut Clipboard) -> anyhow::Result<()> {
+    let text = stdin()
+        .lock()
+        .lines()
+        .collect::<Result<String, _>>()
+        .context("failed to read from stdin")?;
+
+    cb.set_text(text)
+        .context("failed write content to clipboard")?;
+
+    Ok(())
+}
+
+fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
+    let text = cb
+        .get_text()
+        .context("failed to read contents of clipboard")?;
+
+    write!(stdout().lock(), "{text}").context("failed to write to stdout")?;
+
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
-    let mut clipboard = Clipboard::new()?;
+    let mut cb = Clipboard::new()?;
 
     match &cli.command {
         Commands::Kclip {
             action: Actions::Copy,
         }
-        | Commands::Kccopy => {
-            let text = stdin().lock().lines().collect::<Result<String, _>>()?;
-
-            clipboard.set_text(text)?;
-        }
+        | Commands::Kccopy => copy(&mut cb)?,
 
         Commands::Kclip {
             action: Actions::Paste,
         }
-        | Commands::Kcpaste => {
-            let text = clipboard.get_text()?;
-
-            write!(stdout().lock(), "{text}")?;
-        }
+        | Commands::Kcpaste => paste(&mut cb)?,
     }
 
     Ok(())
