@@ -54,7 +54,7 @@ fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     let mut cb = Clipboard::new().context("failed to access clipboard")?;
