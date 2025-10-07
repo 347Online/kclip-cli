@@ -43,9 +43,11 @@ fn copy(cb: &mut Clipboard) -> anyhow::Result<()> {
 }
 
 fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
-    let text = cb
-        .get_text()
-        .context("failed to read contents of clipboard")?;
+    let text = match cb.get_text() {
+        Ok(x) => x,
+        Err(arboard::Error::ContentNotAvailable) => return Ok(()),
+        Err(err) => Err(err).context("failed to read contents of clipboard")?,
+    };
 
     write!(stdout().lock(), "{text}").context("failed to write to stdout")?;
 
@@ -55,7 +57,7 @@ fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
-    let mut cb = Clipboard::new()?;
+    let mut cb = Clipboard::new().context("failed to access clipboard")?;
 
     match &cli.command {
         Commands::Kclip {
