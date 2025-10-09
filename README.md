@@ -86,3 +86,6 @@ home.packages = [
 ];
 ```
 
+## Credits
+KClip would not exist without [Arboard](https://github.com/1Password/arboard), which both inspired KClip's creation and makes it all possible with its excellent API.
+My eternal gratitude to Artur Kovacs, the original author, and the current maintainers at 1Password.
