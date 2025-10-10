@@ -1,9 +1,10 @@
-use std::io::{BufRead, Write, stdin, stdout};
-use std::path::PathBuf;
-
 use anyhow::Context;
+use app_path::app_path;
 use arboard::Clipboard;
-use clap::{Arg, ArgAction, Command, command, value_parser};
+use clap::{Arg, Command, command, value_parser};
+use std::io::{BufRead, Write, stdin, stdout};
+use std::path::{Path, PathBuf};
+use symlink::symlink_file;
 
 fn copy(cb: &mut Clipboard) -> anyhow::Result<()> {
     let text = stdin()
@@ -31,7 +32,7 @@ fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
 }
 
 macro_rules! applet_commands {
-    ($prefix:literal) => {
+    ($prefix:expr) => {
         [
             Command::new(concat!($prefix, "copy"))
                 .about("copies text from stdin to the system clipboard"),
@@ -44,49 +45,94 @@ macro_rules! applet_commands {
     };
 }
 
-fn cli() -> Command {
+macro_rules! alias_prefix {
+    () => {
+        "kc"
+    };
+}
+
+fn install(target: &Path) -> anyhow::Result<()> {
+    let src = std::env::current_exe()?;
+
+    let commands = applet_commands!(alias_prefix!());
+    let total = commands.len();
+    let mut succeeded = 0;
+
+    for cmd in commands {
+        let alias = target.join(cmd.get_name());
+
+        match symlink_file(&src, &alias)
+            .context(format!("failed to symlink {:?} -> {:?}", &src, alias))
+        {
+            Ok(_) => succeeded += 1,
+            Err(err) => {
+                eprintln!("{err}");
+                if let Some(cause) = err.source() {
+                    eprintln!("   {cause}");
+                }
+            }
+        }
+    }
+
+    if succeeded == total {
+        println!("All aliases installed successfully");
+    } else {
+        println!("{succeeded}/{total} aliases installed successfully");
+        std::process::exit(1);
+    }
+
+    Ok(())
+}
+
+fn cli(app_dir: String) -> Command {
     command!("kclip")
         .multicall(true)
         .propagate_version(true)
+        .subcommands(applet_commands!(alias_prefix!()))
         .subcommand(
             command!("kclip")
                 .arg_required_else_help(true)
                 .subcommand_help_heading("COMMANDS")
-                .arg(
-                    Arg::new("install")
-                        .long("install")
-                        .help("Install symlink aliases")
-                        .value_name("target")
-                        .exclusive(true)
-                        .action(ArgAction::Set)
-                        .default_missing_value("/usr/local/bin")
-                        .value_parser(value_parser!(PathBuf)),
-                )
-                .subcommands(applet_commands!()),
+                .subcommands(applet_commands!())
+                .subcommand(
+                    Command::new("install").arg(
+                        Arg::new("target")
+                            .help(format!(
+                                "Install symlink aliases to specified target (default: {app_dir})"
+                            ))
+                            .value_name("target")
+                            .default_value(app_dir)
+                            .value_parser(value_parser!(PathBuf)),
+                    ),
+                ),
         )
-        .subcommands(applet_commands!("kc"))
 }
 
 fn main() -> anyhow::Result<()> {
-    let cmd = cli();
+    let app_dir = app_path!().to_string();
+    let cmd = cli(app_dir);
 
     let mut cb = Clipboard::new().context("failed to access clipboard")?;
 
     let matches = cmd.get_matches();
-    let subcommand = match matches.subcommand() {
-        Some(("kclip", cmd)) => {
-            if cmd.contains_id("install") {
-                unimplemented!();
-            }
+    let subcommand = matches.subcommand().and_then(|x| {
+        if let ("kclip", cmd) = x {
             cmd.subcommand()
+        } else {
+            Some(x)
         }
-
-        x => x,
-    };
+    });
 
     match subcommand {
         Some(("kccopy" | "copy", _)) => copy(&mut cb)?,
         Some(("kcpaste" | "paste", _)) => paste(&mut cb)?,
+        Some(("install", cmd)) => {
+            let target = cmd
+                .get_one::<PathBuf>("target")
+                .expect("target should always have a value");
+
+            install(target)?;
+        }
 
         _ => unreachable!("parser should ensure only valid names are used"),
     }
