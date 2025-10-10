@@ -12,6 +12,7 @@ rustPlatform.buildRustPackage {
   postInstall = ''
     ln -fs $out/bin/kclip $out/bin/kccopy
     ln -fs $out/bin/kclip $out/bin/kcpaste
+    ln -fs $out/bin/kclip $out/bin/kcclear
   '';
 
   meta.mainProgram = manifest.default-run;
