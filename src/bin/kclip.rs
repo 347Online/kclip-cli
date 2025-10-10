@@ -31,7 +31,7 @@ fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
     Ok(())
 }
 
-macro_rules! applet_commands {
+macro_rules! primary_commands {
     ($prefix:expr) => {
         [
             Command::new(concat!($prefix, "copy"))
@@ -41,7 +41,7 @@ macro_rules! applet_commands {
         ]
     };
     () => {
-        applet_commands!("")
+        primary_commands!("")
     };
 }
 
@@ -54,7 +54,7 @@ macro_rules! alias_prefix {
 fn install(target: &Path) -> anyhow::Result<()> {
     let src = std::env::current_exe()?;
 
-    let commands = applet_commands!(alias_prefix!());
+    let commands = primary_commands!(alias_prefix!());
     let total = commands.len();
     let mut succeeded = 0;
 
@@ -88,12 +88,12 @@ fn cli(app_dir: String) -> Command {
     command!("kclip")
         .multicall(true)
         .propagate_version(true)
-        .subcommands(applet_commands!(alias_prefix!()))
+        .subcommands(primary_commands!(alias_prefix!()))
         .subcommand(
             command!("kclip")
                 .arg_required_else_help(true)
                 .subcommand_help_heading("COMMANDS")
-                .subcommands(applet_commands!())
+                .subcommands(primary_commands!())
                 .subcommand(
                     Command::new("install")
                         .arg(
