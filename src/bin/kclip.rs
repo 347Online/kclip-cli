@@ -6,22 +6,6 @@ use std::io::{BufRead, Write, stdin, stdout};
 use std::path::{Path, PathBuf};
 use symlink::symlink_file;
 
-macro_rules! primary_commands {
-    ($prefix:expr) => {
-        [
-            Command::new(concat!($prefix, "copy"))
-                .about("Copies text from stdin to the system clipboard"),
-            Command::new(concat!($prefix, "paste"))
-                .about("Pastes the contents of the system clipboard to stdout"),
-            Command::new(concat!($prefix, "clear"))
-                .about("Clears the contents of the system clipboard"),
-        ]
-    };
-    () => {
-        primary_commands!("")
-    };
-}
-
 struct App {
     cb: Clipboard,
     cli: Command,
@@ -33,8 +17,17 @@ impl App {
         let cb = Clipboard::new().context("Failed to access clipboard")?;
         let app_dir = app_path!().to_string();
 
-        let primary_commands = primary_commands!();
-        let aliased_commands = primary_commands!("kc");
+        let primary_commands = [
+            Command::new("copy").about("Copies text from stdin to the system clipboard"),
+            Command::new("paste").about("Pastes the contents of the system clipboard to stdout"),
+            Command::new("clear").about("Clears the contents of the system clipboard"),
+        ];
+        let [copy, paste, clear] = primary_commands.clone();
+        let aliased_commands = [
+            copy.name("kccopy"),
+            paste.name("kcpaste"),
+            clear.name("kcclear"),
+        ];
 
         let cli = command!("kclip")
             .multicall(true)
