@@ -1,6 +1,6 @@
 [package]
 name = "kclip-cli"
-version = "0.2.2"
+version = "0.2.3"
 description = "A cross-platform CLI for accessing the system clipboard "
 repository = "https://github.com/347Online/kclip-cli"
 authors = ["Katie Janzen / 347Online"]

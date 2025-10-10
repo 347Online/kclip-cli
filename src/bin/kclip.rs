@@ -128,8 +128,8 @@ fn main() -> anyhow::Result<()> {
         Some(("kcpaste" | "paste", _)) => paste(&mut cb)?,
         Some(("install", cmd)) => {
             let target = cmd
-                .get_one::<PathBuf>("target")
-                .expect("target should always have a value");
+                .get_one::<PathBuf>("TARGET")
+                .expect("TARGET should always have a value");
 
             install(target)?;
         }
