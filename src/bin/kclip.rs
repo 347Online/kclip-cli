@@ -38,6 +38,8 @@ macro_rules! primary_commands {
                 .about("Copies text from stdin to the system clipboard"),
             Command::new(concat!($prefix, "paste"))
                 .about("Pastes the contents of the system clipboard to stdout"),
+            Command::new(concat!($prefix, "clear"))
+                .about("Clears the contents of the system clipboard"),
         ]
     };
     () => {
@@ -84,6 +86,26 @@ fn install(target: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn clear(cb: &mut Clipboard) -> anyhow::Result<()> {
+    Ok(cb.clear()?)
+}
+
+fn inspect(cb: &mut Clipboard) {
+    let repr = if let Ok(_paths) = cb.get().file_list() {
+        "files"
+    } else if let Ok(_image) = cb.get().image() {
+        "image"
+    } else if let Ok(_html) = cb.get().html() {
+        "html"
+    } else if let Ok(_text) = cb.get().text() {
+        "text"
+    } else {
+        "<empty>"
+    };
+
+    println!("{repr}");
+}
+
 fn cli(app_dir: String) -> Command {
     command!("kclip")
         .multicall(true)
@@ -96,14 +118,18 @@ fn cli(app_dir: String) -> Command {
                 .subcommands(primary_commands!())
                 .subcommand(
                     Command::new("install")
+                        .about("Install symlink aliases")
                         .arg(
                             Arg::new("TARGET")
                                 .help("Install symlink aliases to specified target")
                                 .value_name("TARGET")
                                 .default_value(app_dir)
                                 .value_parser(value_parser!(PathBuf)),
-                        )
-                        .about("Install symlink aliases"),
+                        ),
+                )
+                .subcommand(
+                    Command::new("inspect")
+                        .about("Display information about the current clipboard content"),
                 ),
         )
 }
@@ -126,6 +152,8 @@ fn main() -> anyhow::Result<()> {
     match subcommand {
         Some(("kccopy" | "copy", _)) => copy(&mut cb)?,
         Some(("kcpaste" | "paste", _)) => paste(&mut cb)?,
+        Some(("kcclear" | "clear", _)) => clear(&mut cb)?,
+        Some(("inspect", _)) => inspect(&mut cb),
         Some(("install", cmd)) => {
             let target = cmd
                 .get_one::<PathBuf>("TARGET")
