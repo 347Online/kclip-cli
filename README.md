@@ -6,10 +6,17 @@ KClip is a cross-platform commandline utility for copying to and pasting from th
 
 KClip can be invoked in one of three ways:
 1. via the `kclip` command - this is the main binary and can be used to either copy or paste with `kclip copy` and `kclip paste`
-2. when the name of the file is `kccopy`* - reads text from std in and copies it to the system clipboard
-3. when the name of the file is `kcpaste`* - writes the contents of the system clipboard to stdout
+2. when the name of the file is `kccopy` - reads text from std in and copies it to the system clipboard
+3. when the name of the file is `kcpaste` - writes the contents of the system clipboard to stdout
 
-*See compilation section for instructions on creating symlinks for kccopy and kcpaste
+## Installation
+
+KClip is available as a binary distribution via crates.io and can be installed with cargo
+
+```sh
+cargo install kclip-cli
+kclip install # installs symlink aliases for kccopy/kcpaste
+```
 
 ## Compilation
 
