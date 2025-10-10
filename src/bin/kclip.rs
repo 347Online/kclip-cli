@@ -11,10 +11,10 @@ fn copy(cb: &mut Clipboard) -> anyhow::Result<()> {
         .lock()
         .lines()
         .collect::<Result<String, _>>()
-        .context("failed to read from stdin")?;
+        .context("Failed to read from stdin")?;
 
     cb.set_text(text)
-        .context("failed write content to clipboard")?;
+        .context("Failed write content to clipboard")?;
 
     Ok(())
 }
@@ -23,10 +23,10 @@ fn paste(cb: &mut Clipboard) -> anyhow::Result<()> {
     let text = match cb.get_text() {
         Ok(x) => x,
         Err(arboard::Error::ContentNotAvailable) => return Ok(()),
-        Err(err) => Err(err).context("failed to read contents of clipboard")?,
+        Err(err) => Err(err).context("Failed to read contents of clipboard")?,
     };
 
-    write!(stdout().lock(), "{text}").context("failed to write to stdout")?;
+    write!(stdout().lock(), "{text}").context("Failed to write to stdout")?;
 
     Ok(())
 }
@@ -35,9 +35,9 @@ macro_rules! applet_commands {
     ($prefix:expr) => {
         [
             Command::new(concat!($prefix, "copy"))
-                .about("copies text from stdin to the system clipboard"),
+                .about("Copies text from stdin to the system clipboard"),
             Command::new(concat!($prefix, "paste"))
-                .about("pastes the contents of the system clipboard to stdout"),
+                .about("Pastes the contents of the system clipboard to stdout"),
         ]
     };
     () => {
@@ -62,7 +62,7 @@ fn install(target: &Path) -> anyhow::Result<()> {
         let alias = target.join(cmd.get_name());
 
         match symlink_file(&src, &alias)
-            .context(format!("failed to symlink {:?} -> {:?}", &src, alias))
+            .context(format!("Failed to symlink {:?} -> {:?}", &src, alias))
         {
             Ok(_) => succeeded += 1,
             Err(err) => {
@@ -95,15 +95,15 @@ fn cli(app_dir: String) -> Command {
                 .subcommand_help_heading("COMMANDS")
                 .subcommands(applet_commands!())
                 .subcommand(
-                    Command::new("install").arg(
-                        Arg::new("target")
-                            .help(format!(
-                                "Install symlink aliases to specified target (default: {app_dir})"
-                            ))
-                            .value_name("target")
-                            .default_value(app_dir)
-                            .value_parser(value_parser!(PathBuf)),
-                    ),
+                    Command::new("install")
+                        .arg(
+                            Arg::new("TARGET")
+                                .help("Install symlink aliases to specified target")
+                                .value_name("TARGET")
+                                .default_value(app_dir)
+                                .value_parser(value_parser!(PathBuf)),
+                        )
+                        .about("Install symlink aliases"),
                 ),
         )
 }
@@ -112,7 +112,7 @@ fn main() -> anyhow::Result<()> {
     let app_dir = app_path!().to_string();
     let cmd = cli(app_dir);
 
-    let mut cb = Clipboard::new().context("failed to access clipboard")?;
+    let mut cb = Clipboard::new().context("Failed to access clipboard")?;
 
     let matches = cmd.get_matches();
     let subcommand = matches.subcommand().and_then(|x| {
