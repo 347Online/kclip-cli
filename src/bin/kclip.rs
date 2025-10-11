@@ -6,10 +6,11 @@ use std::io::{BufRead, Write, stdin, stdout};
 use std::path::{Path, PathBuf};
 use symlink::symlink_file;
 
+const ALIASES: [&str; 4] = ["kclip", "kccopy", "kcpaste", "kcclear"];
+
 struct App {
     cb: Clipboard,
     cli: Command,
-    aliased_commands: [Command; 3],
 }
 
 impl App {
@@ -55,11 +56,7 @@ impl App {
                     ),
             );
 
-        Ok(App {
-            cb,
-            cli,
-            aliased_commands,
-        })
+        Ok(App { cb, cli })
     }
 
     fn copy(&mut self) -> anyhow::Result<()> {
@@ -91,11 +88,18 @@ impl App {
     fn install(&self, target: &Path) -> anyhow::Result<()> {
         let src = std::env::current_exe()?;
 
-        let total = self.aliased_commands.len();
+        let external = target.as_os_str() != app_path!().as_os_str();
+
+        let aliases = if external {
+            Vec::from(ALIASES)
+        } else {
+            Vec::from(&ALIASES[1..])
+        };
+        let total = aliases.len();
         let mut succeeded = 0;
 
-        for cmd in &self.aliased_commands {
-            let alias = target.join(cmd.get_name());
+        for cmd in aliases {
+            let alias = target.join(cmd);
 
             match symlink_file(&src, &alias)
                 .context(format!("Failed to symlink {:?} -> {:?}", &src, alias))
@@ -110,10 +114,9 @@ impl App {
             }
         }
 
-        if succeeded == total {
-            println!("All aliases installed successfully");
-        } else {
-            println!("{succeeded}/{total} aliases installed successfully");
+        println!("{succeeded}/{total} aliases installed successfully");
+
+        if succeeded != total {
             std::process::exit(1);
         }
 
