@@ -1,0 +1,12 @@
+name: Publish
+on:
+  push:
+    branches: [main, dev] # TODO: REMOVE DEV WHEN DISABLING DRY RUN
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: cargo publish --dry-run
