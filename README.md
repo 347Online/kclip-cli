@@ -38,14 +38,12 @@ cargo build --release
 
 Like any Rust project, initial compilation will take longer as all associated dependencies are compiled, but later builds will be faster by virtue of incremental compilation.
 
-After building the application, you will need to place the compiled binary in a location on `$PATH`, e.g. /usr/local/bin, however this alone will not provide access to `kccopy` or `kcpaste`.
+After building the application, you will need to place the compiled binary in a location on `$PATH`, e.g. /usr/local/bin, however this alone will not provide access to `kccopy`, `kcpaste`, or `kcclear`.
 For that, it is recommended to create symlinks to wherever you placed the kclip binary in a location on `$PATH` as well. If you expect to rebuild KClip often, you can even link to the location of the compiled binary itself, which will always give you access to your latest build.
 
 ```sh
 # Execute from the base directory of the repository
-for x in {kclip,kccopy,kcpaste}; do
-  sudo ln -s "$(readlink -f ./target/release/kclip)" "/usr/local/bin/$x"
-done
+./target/debug/kclip install /usr/local/bin
 ```
 
 ### Nix-based setup

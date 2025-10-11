@@ -10,8 +10,7 @@ rustPlatform.buildRustPackage {
   src = lib.cleanSource ./.;
 
   postInstall = ''
-    ln -fs $out/bin/kclip $out/bin/kccopy
-    ln -fs $out/bin/kclip $out/bin/kcpaste
+    $out/bin/kclip install $out/bin
   '';
 
   meta.mainProgram = manifest.default-run;
