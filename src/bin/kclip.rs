@@ -1,3 +1,5 @@
+#![feature(iter_intersperse)]
+
 use anyhow::Context;
 use app_path::app_path;
 use arboard::Clipboard;
@@ -16,6 +18,7 @@ fn copy() -> anyhow::Result<()> {
     let text = stdin()
         .lock()
         .lines()
+        .intersperse_with(|| Ok("\n".to_string()))
         .collect::<Result<String, _>>()
         .context("Failed to read from stdin")?;
 
