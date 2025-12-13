@@ -1,9 +1,8 @@
-#![feature(iter_intersperse)]
-
 use anyhow::Context;
 use app_path::app_path;
 use arboard::Clipboard;
 use clap::{Arg, Command, command, value_parser};
+use itertools::Itertools;
 use std::io::{BufRead, Write, stdin, stdout};
 use std::path::{Path, PathBuf};
 use symlink::symlink_file;
@@ -15,10 +14,7 @@ fn get_clipboard() -> anyhow::Result<Clipboard> {
 }
 
 fn copy() -> anyhow::Result<()> {
-    let text = stdin()
-        .lock()
-        .lines()
-        .intersperse_with(|| Ok("\n".to_string()))
+    let text = Itertools::intersperse_with(stdin().lock().lines(), || Ok("\n".to_string()))
         .collect::<Result<String, _>>()
         .context("Failed to read from stdin")?;
 

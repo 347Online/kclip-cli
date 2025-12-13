@@ -1,6 +1,6 @@
 [package]
 name = "kclip-cli"
-version = "0.4.0"
+version = "0.4.1"
 description = "A cross-platform CLI for accessing the system clipboard "
 repository = "https://github.com/347Online/kclip-cli"
 authors = ["Katie Janzen / 347Online"]
@@ -14,4 +14,5 @@ anyhow = "1.0.100"
 app-path = "1.1.2"
 arboard = "3.6.1"
 clap = { version = "4.5.48", features = ["cargo", "string"] }
+itertools = "0.14.0"
 symlink = "0.1.0"
